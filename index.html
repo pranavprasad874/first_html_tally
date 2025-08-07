@@ -3,731 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TallyPro Services - Interactive FAQ System</title>
+    <title>Tally Help Desk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
         }
-
-        /* Header */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #4a5568;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #4a5568;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        /* Main Layout */
-        .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-            min-height: calc(100vh - 200px);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            height: fit-content;
-            position: sticky;
-            top: 120px;
-        }
-
-        .sidebar-title {
-            font-size: 1.2rem;
-            color: #4a5568;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .query-list {
-            list-style: none;
-        }
-
-        .query-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .query-button {
-            width: 100%;
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            padding: 0.8rem;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #4a5568;
-            transition: all 0.3s ease;
-            line-height: 1.4;
-        }
-
-        .query-button:hover {
-            background: #f7fafc;
-            border-color: #667eea;
-            transform: translateX(5px);
-        }
-
-        .query-button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        /* Main Content */
-        .content-area {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #4a5568;
-        }
-
-        .hero h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-            color: #2d3748;
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Query Input */
-        .query-input-section {
-            margin-bottom: 2rem;
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        .query-input {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .query-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .ask-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 1rem;
-        }
-
-        .ask-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .input-row {
-            display: flex;
-            align-items: stretch;
-        }
-
-        /* Response Area */
-        .response-area {
-            flex: 1;
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 2rem;
-            border: 2px dashed #e2e8f0;
-            min-height: 300px;
-            position: relative;
-        }
-
-        .response-area.has-content {
-            border: 2px solid #667eea;
-            background: white;
-        }
-
-        .placeholder-text {
-            text-align: center;
-            color: #a0aec0;
-            font-size: 1.1rem;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            display: block;
-        }
-
-        .response-area.has-content .placeholder-text {
-            display: none;
-        }
-
-        .response-content {
-            display: none;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        .response-content.active {
-            display: block;
-        }
-
-        .response-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #667eea;
-        }
-
-        .response-text {
-            color: #4a5568;
-            line-height: 1.7;
-            font-size: 1rem;
-        }
-
-        .response-text strong {
-            color: #2d3748;
-            display: block;
-            margin: 1.5rem 0 0.5rem 0;
-            font-weight: 600;
-        }
-
-        .clear-button {
-            background: #e53e3e;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .clear-button:hover {
-            background: #c53030;
-            transform: translateY(-1px);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .sidebar {
-                position: static;
-                order: 2;
-            }
-
-            .content-area {
-                order: 1;
-            }
-
-            .input-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .ask-button {
-                margin-left: 0;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem;
-            }
-
-            .nav-links {
-                gap: 1rem;
-            }
-
-            .hero h1 {
-                font-size: 1.8rem;
-            }
-
-            .main-container {
-                padding: 0 1rem;
-            }
-
-            .content-area,
-            .sidebar {
-                padding: 1.5rem;
-            }
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
         }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <nav class="nav-container">
-            <a href="#" class="logo">TallyPro Services</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#signin">Sign In</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+<body class="bg-gray-100 text-gray-800">
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Sidebar with Available Queries -->
-        <aside class="sidebar">
-            <h3 class="sidebar-title">Available Queries</h3>
-            <ul class="query-list">
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(0)">
-                        What bookkeeping services do you provide for small businesses?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(1)">
-                        I'm getting errors in Tally Prime. Can you help with technical support?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(2)">
-                        What are your charges for monthly GST filing and bookkeeping?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(3)">
-                        How do you handle migration from Tally ERP 9 to Tally Prime?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(4)">
-                        What documents do I need for GST audit compliance?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(5)">
-                        Can you help recover corrupted Tally data?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(6)">
-                        Do you provide Tally training for our accounts team?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(7)">
-                        Can you integrate our e-commerce platform with Tally?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(8)">
-                        How do you help with audit preparation?
-                    </button>
-                </li>
-                <li class="query-item">
-                    <button class="query-button" onclick="selectQuery(9)">
-                        Can you create custom MIS reports for our business analysis?
-                    </button>
-                </li>
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <header class="text-center mb-8">
+            <img src="https://placehold.co/150x50/003366/FFFFFF?text=Tally" alt="Tally Logo" class="mx-auto mb-4 rounded">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Tally Help Desk</h1>
+            <p class="text-gray-600 mt-2">Your one-stop solution for all Tally-related queries.</p>
+        </header>
+
+        <main class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Ask a Question</h2>
+            <div class="relative">
+                <input type="text" id="searchInput" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your question here...">
+                <div id="suggestions" class="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-lg shadow-lg hidden"></div>
+            </div>
+            <div id="answerContainer" class="mt-4 p-4 bg-blue-50 rounded-lg hidden">
+                <h3 class="font-bold text-lg text-blue-800">Answer:</h3>
+                <p id="answerText" class="text-gray-700 mt-2 whitespace-pre-wrap"></p>
+            </div>
+        </main>
+
+        <aside class="mt-8 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Available Questions</h2>
+            <ul id="questionsList" class="space-y-3">
+                <li>Loading questions...</li>
             </ul>
         </aside>
 
-        <!-- Main Content Area -->
-        <main class="content-area">
-            <!-- Hero Section -->
-            <div class="hero">
-                <h1>Interactive FAQ System</h1>
-                <p>Ask any question from the sidebar or type your own query to get detailed answers about our Tally services</p>
-            </div>
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <h3 class="text-lg font-semibold">Contact Us</h3>
+            <p class="text-gray-600 mt-2">For further assistance, please reach out to our support team.</p>
+            <p class="text-gray-600">Email: <a href="mailto:support@tallysolutions.com" class="text-blue-600 hover:underline">support@tallysolutions.com</a></p>
+            <p class="text-gray-600">Phone: 1-800-425-8859</p>
+        </footer>
 
-            <!-- Query Input Section -->
-            <div class="query-input-section">
-                <div class="input-row">
-                    <input 
-                        type="text" 
-                        class="query-input" 
-                        id="queryInput"
-                        placeholder="Type your question here or click on any query from the sidebar..."
-                        onkeypress="handleKeyPress(event)"
-                    >
-                    <button class="ask-button" onclick="processQuery()">Ask Question</button>
-                </div>
-            </div>
-
-            <!-- Response Area -->
-            <div class="response-area" id="responseArea">
-                <div class="placeholder-text">
-                    👋 Welcome! Select a question from the sidebar or type your own query above to get started.
-                </div>
-                
-                <div class="response-content" id="responseContent">
-                    <div class="response-title" id="responseTitle"></div>
-                    <div class="response-text" id="responseText"></div>
-                    <button class="clear-button" onclick="clearResponse()">Clear Response</button>
-                </div>
-            </div>
-        </main>
     </div>
 
     <script>
-        // FAQ Data
-        const faqData = [
-            {
-                question: "What bookkeeping services do you provide for small businesses?",
-                answer: `We offer complete bookkeeping services for small businesses including daily transaction recording, managing accounts payable and receivable, bank reconciliation, and preparing monthly financial statements. Our services also cover GST filing, TDS returns, payroll processing, and inventory management in Tally Prime.
-                <br><br>
-                We provide both on-site and remote bookkeeping support with dedicated account managers. Our team handles data entry, invoice generation, expense tracking, and provides monthly financial reports to help you make informed business decisions. We also offer training sessions for your staff.`
-            },
-            {
-                question: "I'm getting errors in Tally Prime. Can you help with technical support?",
-                answer: `Yes! Common Tally Prime errors are usually related to incomplete setup or configuration issues. We can help troubleshoot problems with purchase vouchers, GST calculations, inventory management, and more.
-                <br><br>
-                Our technical team can connect remotely to resolve issues quickly. We check your master data setup, verify GST configurations, and ensure all ledgers are properly configured. We offer same-day support for critical errors that affect your daily operations.`
-            },
-            {
-                question: "What are your charges for monthly GST filing and bookkeeping?",
-                answer: `Our pricing depends on your business size and transaction volume:
-                <br><br>
-                <strong>Basic Package (₹3,000/month):</strong> Up to 100 transactions, monthly bookkeeping, GST filing, bank reconciliation, and basic reports.
-                <br><br>
-                <strong>Standard Package (₹5,500/month):</strong> Up to 300 transactions, includes TDS returns, inventory management, detailed reports, and quarterly reviews.
-                <br><br>
-                <strong>Premium Package (₹8,500/month):</strong> Unlimited transactions, payroll processing, audit support, monthly analysis, and dedicated account manager.
-                <br><br>
-                All packages include free Tally support and data backup. Annual subscriptions get 10% discount.`
-            },
-            {
-                question: "How do you handle migration from Tally ERP 9 to Tally Prime?",
-                answer: `Migration from Tally ERP 9 to Tally Prime typically takes 2-5 business days. Our process includes:
-                <br><br>
-                <strong>Days 1-2:</strong> Data assessment, backup creation, Tally Prime installation, and initial data migration with verification of accounts and master data.
-                <br><br>
-                <strong>Days 3-4:</strong> Testing all functions, report validation, and user training sessions. We ensure all customizations work correctly.
-                <br><br>
-                <strong>Day 5:</strong> Final testing, verification, and go-live support with our team monitoring for any issues.
-                <br><br>
-                Our service includes data cleanup, feature optimization, staff training, and 30-day support. Investment is ₹15,000-25,000 with zero data loss guarantee.`
-            },
-            {
-                question: "What documents do I need for GST audit compliance?",
-                answer: `For GST audit compliance, you need to maintain several key documents that Tally Prime can help manage:
-                <br><br>
-                <strong>Sales Documents:</strong> Tax invoices, delivery challans, credit/debit notes, and export documents with proper numbering and GST details.
-                <br><br>
-                <strong>Purchase Documents:</strong> Purchase invoices, import documents, input tax credit records, and vendor payments with GSTIN verification.
-                <br><br>
-                <strong>Returns and Registers:</strong> GSTR-1, GSTR-3B, annual returns, and HSN-wise summaries that Tally generates automatically.
-                <br><br>
-                Tally Prime includes compliance features like auto tax calculation, e-invoice integration, e-way bills, and GST reconciliation. We ensure your books are always audit-ready.`
-            },
-            {
-                question: "Can you help recover corrupted Tally data?",
-                answer: `Yes! Our data recovery service has a 90% success rate for corrupted Tally files. Here's our process:
-                <br><br>
-                <strong>Emergency Response:</strong> We assess corruption level within 2 hours and provide immediate guidance to prevent further damage.
-                <br><br>
-                <strong>Recovery Process:</strong> Using specialized tools, we reconstruct data from backup files, temporary files, and system restore points within 24-48 hours.
-                <br><br>
-                <strong>Data Reconstruction:</strong> If needed, we help rebuild missing entries using bank statements, invoices, and other documents.
-                <br><br>
-                We also set up automated daily backups and cloud sync to prevent future issues. Emergency recovery starts at ₹5,000 with "no recovery, no charge" guarantee.`
-            },
-            {
-                question: "Do you provide Tally training for our accounts team?",
-                answer: `We offer comprehensive Tally training programs for different skill levels:
-                <br><br>
-                <strong>Basic Training (3 days):</strong> Company setup, master data, voucher entry, basic reports, and GST configuration. Perfect for new users - ₹2,500 per person.
-                <br><br>
-                <strong>Advanced Training (5 days):</strong> Advanced inventory, multi-currency, cost centers, budgeting, MIS reports, and integrations - ₹4,000 per person.
-                <br><br>
-                <strong>Specialized Modules:</strong> Manufacturing accounting, service industry features, e-commerce integration, and payroll management.
-                <br><br>
-                Training includes hands-on practice with your actual data, materials, certification, and 30-day support. Available at your premises or our facility with group discounts.`
-            },
-            {
-                question: "Can you integrate our e-commerce platform with Tally?",
-                answer: `Yes! We specialize in e-commerce integration with Tally Prime for automated accounting:
-                <br><br>
-                <strong>Automated Data Flow:</strong> Real-time sync of sales orders, invoices, payments, and inventory between your e-commerce platform and Tally.
-                <br><br>
-                <strong>Multi-channel Management:</strong> Consolidated reporting across all sales channels with proper analysis, commission tracking, and reconciliation.
-                <br><br>
-                <strong>Inventory Sync:</strong> Automatic stock updates, low stock alerts, and seamless management across online and offline channels.
-                <br><br>
-                We handle Shopify, WooCommerce, Magento, Amazon, and custom APIs. Setup takes 5-7 days. Investment: ₹25,000-50,000 based on complexity, typically pays for itself within 3 months.`
-            },
-            {
-                question: "How do you help with audit preparation?",
-                answer: `Our audit preparation service ensures your books are completely audit-ready:
-                <br><br>
-                <strong>Pre-audit Review:</strong> Complete books scrutiny, trial balance verification, and identification of potential audit queries with accuracy checks.
-                <br><br>
-                <strong>Documentation:</strong> Systematic organization of vouchers, bank statements, registers, and certificates with digital indexing for quick retrieval.
-                <br><br>
-                <strong>Reconciliation:</strong> Bank reconciliation, creditor/debtor confirmations, stock verification, and fixed asset register updates.
-                <br><br>
-                <strong>Compliance Check:</strong> GST return reconciliation, TDS compliance, statutory due dates, and proper expense classification.
-                <br><br>
-                Process takes 7-10 days, costs ₹15,000-30,000. We can be present during audit for support and clarifications.`
-            },
-            {
-                question: "Can you create custom MIS reports for our business analysis?",
-                answer: `Absolutely! We create custom Management Information System reports for actionable business insights:
-                <br><br>
-                <strong>Department-wise Profitability:</strong> Custom cost center setup to track revenue, costs, and overhead by department with real-time P&L and variance analysis.
-                <br><br>
-                <strong>Cash Flow Analysis:</strong> Detailed cash flow projections, aging analysis, liquidity management reports with automated alerts for cash flow issues.
-                <br><br>
-                <strong>Advanced Analytics:</strong> Trend analysis, ratio calculations, budget vs. actual comparisons, and graphical dashboards for presentations.
-                <br><br>
-                Investment: ₹10,000-25,000 based on complexity. These reports typically help businesses identify profit opportunities and improve profitability by 15-20%.`
-            }
-        ];
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration ---
+            // PASTE THE URL YOU COPIED FROM GOOGLE SHEETS HERE
+            const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSepXk6D6pz8VbdpwO3UkhOrH77gY1yLXCCXieh2GhgTxM0qj1bukNFa8xpeUDwxQrAz9maQdHKYi-Y/pub?output=csv';
 
-        // Select query from sidebar
-        function selectQuery(index) {
-            // Clear all active states
-            document.querySelectorAll('.query-button').forEach(btn => btn.classList.remove('active'));
-            
-            // Set active state
-            document.querySelectorAll('.query-button')[index].classList.add('active');
-            
-            // Set input value
-            document.getElementById('queryInput').value = faqData[index].question;
-            
-            // Show response
-            showResponse(faqData[index].question, faqData[index].answer);
-        }
+            // --- DOM Element References ---
+            const questionsList = document.getElementById('questionsList');
+            const searchInput = document.getElementById('searchInput');
+            const suggestions = document.getElementById('suggestions');
+            const answerContainer = document.getElementById('answerContainer');
+            const answerText = document.getElementById('answerText');
 
-        // Process query (from input or button click)
-        function processQuery() {
-            const query = document.getElementById('queryInput').value.trim();
-            
-            if (!query) {
-                alert('Please enter a question or select one from the sidebar.');
-                return;
-            }
+            // --- Local Data Store ---
+            let localData = [];
 
-            // Find matching FAQ
-            const matchedFAQ = findMatchingFAQ(query);
-            
-            if (matchedFAQ) {
-                showResponse(matchedFAQ.question, matchedFAQ.answer);
-                // Highlight matching sidebar item
-                highlightMatchingSidebarItem(matchedFAQ.question);
-            } else {
-                showGenericResponse(query);
-            }
-        }
+            // --- API object for interacting with Google Sheet data ---
+            const api = {
+                fetchSheetData: async () => {
+                    try {
+                        if (GOOGLE_SHEET_URL === 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE' || !GOOGLE_SHEET_URL) {
+                            throw new Error("Google Sheet URL is not configured. Please paste it into the script.");
+                        }
+                        const response = await fetch(GOOGLE_SHEET_URL);
+                        if (!response.ok) throw new Error(`Failed to fetch data. Status: ${response.status}`);
+                        
+                        const csvText = await response.text();
+                        const parsedData = Papa.parse(csvText, {
+                            header: true,
+                            skipEmptyLines: true,
+                        });
+                        
+                        // Filter out any rows where the 'Question' column is empty
+                        return parsedData.data.filter(item => item.Question && item.Question.trim() !== '');
 
-        // Find matching FAQ based on keywords
-        function findMatchingFAQ(query) {
-            const queryLower = query.toLowerCase();
-            
-            // Direct match first
-            for (let faq of faqData) {
-                if (faq.question.toLowerCase() === queryLower) {
-                    return faq;
+                    } catch (error) {
+                        console.error("Error fetching or parsing sheet data:", error);
+                        questionsList.innerHTML = `<li><strong>Error:</strong> ${error.message}</li>`;
+                        return [];
+                    }
+                },
+                getAllQuestions: () => {
+                    return localData; // Return all loaded questions
+                },
+                searchQuestions: (query) => {
+                    if (!query) return [];
+                    const lowerCaseQuery = query.toLowerCase();
+                    // **MODIFIED**: Searches the "Question" column
+                    return localData.filter(item => item.Question.toLowerCase().includes(lowerCaseQuery));
                 }
-            }
-            
-            // Keyword matching
-            const keywords = {
-                'bookkeeping': 0,
-                'small business': 0,
-                'accounting services': 0,
-                'error': 1,
-                'technical support': 1,
-                'tally prime': 1,
-                'troubleshoot': 1,
-                'charges': 2,
-                'pricing': 2,
-                'cost': 2,
-                'gst filing': 2,
-                'monthly': 2,
-                'migration': 3,
-                'erp 9': 3,
-                'prime': 3,
-                'upgrade': 3,
-                'documents': 4,
-                'audit': 4,
-                'compliance': 4,
-                'gst audit': 4,
-                'recovery': 5,
-                'corrupt': 5,
-                'data recovery': 5,
-                'training': 6,
-                'learn': 6,
-                'course': 6,
-                'team': 6,
-                'ecommerce': 7,
-                'e-commerce': 7,
-                'integration': 7,
-                'online': 7,
-                'audit preparation': 8,
-                'mis': 9,
-                'reports': 9,
-                'analysis': 9,
-                'custom reports': 9
             };
-            
-            for (let keyword in keywords) {
-                if (queryLower.includes(keyword)) {
-                    return faqData[keywords[keyword]];
-                }
-            }
-            
-            return null;
-        }
 
-        // Highlight matching sidebar item
-        function highlightMatchingSidebarItem(question) {
-            document.querySelectorAll('.query-button').forEach((btn, index) => {
-                btn.classList.remove('active');
-                if (btn.textContent.trim() === question) {
-                    btn.classList.add('active');
+            // --- UI Helper Functions ---
+            const createClickableListItem = (item) => {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                button.className = 'text-left w-full text-blue-600 hover:underline focus:outline-none';
+                // **MODIFIED**: Uses the "Question" column
+                button.textContent = item.Question;
+                button.onclick = () => displayAnswer(item);
+                li.appendChild(button);
+                return li;
+            };
+
+            const displayAnswer = (item) => {
+                // **MODIFIED**: Uses the "Step-by-Step Answer" column
+                answerText.textContent = item['Step-by-Step Answer'];
+                answerContainer.classList.remove('hidden');
+                // **MODIFIED**: Uses the "Question" column
+                searchInput.value = item.Question;
+                suggestions.classList.add('hidden');
+            };
+
+            // --- Main Initialization Function ---
+            const loadInitialData = async () => {
+                localData = await api.fetchSheetData();
+                if (localData.length === 0 && questionsList.textContent.includes('Error')) return;
+
+                const allQuestions = api.getAllQuestions();
+                
+                questionsList.innerHTML = '';
+
+                if (allQuestions.length > 0) {
+                    allQuestions.forEach(q => questionsList.appendChild(createClickableListItem(q)));
+                } else {
+                    questionsList.innerHTML = '<li>No questions found in the data source.</li>';
+                }
+            };
+
+            // --- Event Listeners ---
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim();
+                suggestions.classList.add('hidden');
+                if (query.length < 2) return;
+
+                const results = api.searchQuestions(query);
+                suggestions.innerHTML = '';
+                if (results.length > 0) {
+                    results.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'p-3 cursor-pointer suggestion-item';
+                        // **MODIFIED**: Uses the "Question" column
+                        const questionText = item.Question;
+                        const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+                        div.innerHTML = questionText.replace(regex, '<strong>$1</strong>');
+                        div.onclick = () => displayAnswer(item);
+                        suggestions.appendChild(div);
+                    });
+                    suggestions.classList.remove('hidden');
                 }
             });
-        }
 
-        // Show response
-        function showResponse(question, answer) {
-            const responseArea = document.getElementById('responseArea');
-            const responseContent = document.getElementById('responseContent');
-            const responseTitle = document.getElementById('responseTitle');
-            const responseText = document.getElementById('responseText');
-            
-            responseTitle.textContent = question;
-            responseText.innerHTML = answer;
-            
-            responseArea.classList.add('has-content');
-            responseContent.classList.add('active');
-        }
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = searchInput.value;
+                    const results = api.searchQuestions(query);
+                    if (results.length > 0) {
+                        displayAnswer(results[0]);
+                    } else {
+                        // **MODIFIED**: Uses the "Step-by-Step Answer" column
+                        answerText.textContent = "Sorry, we couldn't find an answer. Please try rephrasing it.";
+                        answerContainer.classList.remove('hidden');
+                    }
+                    suggestions.classList.add('hidden');
+                }
+            });
 
-        // Show generic response for unmatched queries
-        function showGenericResponse(query) {
-            const genericAnswer = `Thank you for your question: "${query}"
-            <br><br>
-            While this specific question isn't in our predefined FAQ list, we'd be happy to help you with any Tally-related queries. Our services include:
-            <br><br>
-            • Complete bookkeeping and accounting solutions<br>
-            • Technical support for Tally Prime and ERP 9<br>
-            • GST filing and compliance<br>
-            • Data migration and recovery<br>
-            • Staff training and consultation<br>
-            • Custom reporting and analytics<br>
-            <br>
-            Please contact us directly at <strong>info@tallyproservices.com</strong> or <strong>+91 98765 43210</strong> for a detailed response to your specific question. We typically respond within 24 hours with comprehensive solutions.`;
-            
-            showResponse("Custom Query", genericAnswer);
-        }
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                    suggestions.classList.add('hidden');
+                }
+            });
 
-        // Clear response
-        function clearResponse() {
-            const responseArea = document.getElementById('responseArea');
-            const responseContent = document.getElementById('responseContent');
-            
-            responseArea.classList.remove('has-content');
-            responseContent.classList.remove('active');
-            
-            document.getElementById('queryInput').value = '';
-            document.querySelectorAll('.query-button').forEach(btn => btn.classList.remove('active'));
-        }
-
-        // Handle Enter key press
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                processQuery();
-            }
-        }
+            // --- Start the application ---
+            loadInitialData();
+        });
     </script>
+
 </body>
 </html>
