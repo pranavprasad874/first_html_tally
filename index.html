@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tally Help Desk</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -32,9 +32,9 @@
                 <input type="text" id="searchInput" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your question here...">
                 <div id="suggestions" class="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-lg shadow-lg hidden"></div>
             </div>
-            <div id="answerContainer" class="mt-4 p-4 bg-blue-50 rounded-lg hidden">
+            <div id="answerContainer" class="mt-6 p-4 bg-blue-50 rounded-lg hidden">
                 <h3 class="font-bold text-lg text-blue-800">Answer:</h3>
-                <p id="answerText" class="text-gray-700 mt-2 whitespace-pre-wrap"></p>
+                <div id="answerContent" class="prose max-w-none text-gray-700 mt-2"></div>
             </div>
         </main>
 
@@ -57,7 +57,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- Configuration ---
-            // PASTE THE URL YOU COPIED FROM GOOGLE SHEETS HERE
             const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSepXk6D6pz8VbdpwO3UkhOrH77gY1yLXCCXieh2GhgTxM0qj1bukNFa8xpeUDwxQrAz9maQdHKYi-Y/pub?output=csv';
 
             // --- DOM Element References ---
@@ -65,12 +64,13 @@
             const searchInput = document.getElementById('searchInput');
             const suggestions = document.getElementById('suggestions');
             const answerContainer = document.getElementById('answerContainer');
-            const answerText = document.getElementById('answerText');
+            // UPDATED: Changed reference to answerContent
+            const answerContent = document.getElementById('answerContent');
 
             // --- Local Data Store ---
             let localData = [];
 
-            // --- API object for interacting with Google Sheet data ---
+            // --- API object for interacting with data ---
             const api = {
                 fetchSheetData: async () => {
                     try {
@@ -81,12 +81,14 @@
                         if (!response.ok) throw new Error(`Failed to fetch data. Status: ${response.status}`);
                         
                         const csvText = await response.text();
+                        // UPDATED: Added delimiter option in PapaParse configuration
                         const parsedData = Papa.parse(csvText, {
                             header: true,
+                            // NOTE: The default is comma. If your data source uses ';-' as a separator, change it here.
+                            delimiter: ",", 
                             skipEmptyLines: true,
                         });
                         
-                        // Filter out any rows where the 'Question' column is empty
                         return parsedData.data.filter(item => item.Question && item.Question.trim() !== '');
 
                     } catch (error) {
@@ -95,13 +97,10 @@
                         return [];
                     }
                 },
-                getAllQuestions: () => {
-                    return localData; // Return all loaded questions
-                },
+                getAllQuestions: () => localData,
                 searchQuestions: (query) => {
                     if (!query) return [];
                     const lowerCaseQuery = query.toLowerCase();
-                    // **MODIFIED**: Searches the "Question" column
                     return localData.filter(item => item.Question.toLowerCase().includes(lowerCaseQuery));
                 }
             };
@@ -111,35 +110,79 @@
                 const li = document.createElement('li');
                 const button = document.createElement('button');
                 button.className = 'text-left w-full text-blue-600 hover:underline focus:outline-none';
-                // **MODIFIED**: Uses the "Question" column
                 button.textContent = item.Question;
                 button.onclick = () => displayAnswer(item);
                 li.appendChild(button);
                 return li;
             };
 
+            // --- UPDATED: displayAnswer function to handle images and videos ---
             const displayAnswer = (item) => {
-                // **MODIFIED**: Uses the "Step-by-Step Answer" column
-                answerText.textContent = item['Step-by-Step Answer'];
+                let htmlContent = '';
+
+                // Add the step-by-step answer text
+                if (item['Step-by-Step Answer']) {
+                    // Using <pre> for better formatting of multi-line text
+                    htmlContent += `<pre class="whitespace-pre-wrap font-sans text-base">${item['Step-by-Step Answer']}</pre>`;
+                }
+
+                // Add the image if the link exists
+                if (item['Image Link'] && item['Image Link'].trim() !== '') {
+                    htmlContent += `
+                        <div class="mt-4 pt-4 border-t">
+                            <h4 class="font-semibold text-gray-800">Reference Image:</h4>
+                            <img src="${item['Image Link']}" alt="Reference for ${item.Question}" class="mt-2 rounded-lg border shadow-sm max-w-full h-auto">
+                        </div>
+                    `;
+                }
+
+                // Add the video if the link exists
+                if (item['Video Link'] && item['Video Link'].trim() !== '') {
+                    let videoEmbedHtml = '';
+                    const videoUrl = item['Video Link'];
+                    // Check for YouTube URLs and create an embeddable iframe
+                    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                    const youtubeMatch = videoUrl.match(youtubeRegex);
+
+                    if (youtubeMatch && youtubeMatch[1]) {
+                        const videoId = youtubeMatch[1];
+                        videoEmbedHtml = `
+                            <div class="aspect-w-16 aspect-h-9">
+                                <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-lg shadow-sm"></iframe>
+                            </div>`;
+                    } else {
+                        // Fallback for non-YouTube links
+                        videoEmbedHtml = `<a href="${videoUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Watch Video Tutorial</a>`;
+                    }
+
+                    htmlContent += `
+                        <div class="mt-4 pt-4 border-t">
+                            <h4 class="font-semibold text-gray-800">Reference Video:</h4>
+                            <div class="mt-2">${videoEmbedHtml}</div>
+                        </div>
+                    `;
+                }
+                
+                answerContent.innerHTML = htmlContent;
                 answerContainer.classList.remove('hidden');
-                // **MODIFIED**: Uses the "Question" column
                 searchInput.value = item.Question;
                 suggestions.classList.add('hidden');
+                answerContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             };
+
 
             // --- Main Initialization Function ---
             const loadInitialData = async () => {
                 localData = await api.fetchSheetData();
                 if (localData.length === 0 && questionsList.textContent.includes('Error')) return;
 
-                const allQuestions = api.getAllQuestions();
-                
                 questionsList.innerHTML = '';
+                const allQuestions = api.getAllQuestions();
 
                 if (allQuestions.length > 0) {
                     allQuestions.forEach(q => questionsList.appendChild(createClickableListItem(q)));
                 } else {
-                    questionsList.innerHTML = '<li>No questions found in the data source.</li>';
+                    questionsList.innerHTML = '<li>No questions found. Check the data source and configuration.</li>';
                 }
             };
 
@@ -155,7 +198,6 @@
                     results.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'p-3 cursor-pointer suggestion-item';
-                        // **MODIFIED**: Uses the "Question" column
                         const questionText = item.Question;
                         const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
                         div.innerHTML = questionText.replace(regex, '<strong>$1</strong>');
@@ -174,8 +216,7 @@
                     if (results.length > 0) {
                         displayAnswer(results[0]);
                     } else {
-                        // **MODIFIED**: Uses the "Step-by-Step Answer" column
-                        answerText.textContent = "Sorry, we couldn't find an answer. Please try rephrasing it.";
+                        answerContent.textContent = "Sorry, we couldn't find an answer. Please try rephrasing your question or check the available questions list.";
                         answerContainer.classList.remove('hidden');
                     }
                     suggestions.classList.add('hidden');
